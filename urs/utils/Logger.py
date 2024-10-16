@@ -24,15 +24,15 @@ class LogMain:
     event to the log if applicable.
     """
 
-    ### Set directory path and log format.
+    # Set directory path and log format.
     DIR_PATH = f"../scrapes/{date}"
     LOG_FORMAT = "[%(asctime)s] [%(levelname)s]: %(message)s"
 
-    ### Makes the `scrapes/[DATE]` directory in which the log and scraped files
-    ### will be stored.
+    # Makes the `scrapes/[DATE]` directory in which the log and scraped files
+    # will be stored.
     InitializeDirectory.create_dirs(DIR_PATH)
 
-    ### Configure logging settings.
+    # Configure logging settings.
     logging.basicConfig(
         filename=DIR_PATH + "/urs.log", format=LOG_FORMAT, level=logging.INFO
     )
@@ -66,7 +66,8 @@ class LogMain:
                 logging.warning("URS ABORTED BY USER.\n")
                 quit()
 
-            logging.info(f"URS COMPLETED IN {time.time() - start:.2f} SECONDS.\n")
+            logging.info(
+                f"URS COMPLETED IN {time.time() - start:.2f} SECONDS.\n")
 
         return wrapper
 
@@ -181,22 +182,40 @@ class LogPRAWScraper:
 
         time_filters = ["day", "hour", "month", "week", "year"]
 
-        for subreddit_name, settings in settings_dict.items():
-            for each_setting in settings:
-                if each_setting[2] in time_filters:
-                    logging.info(
-                        f"Getting posts from the past {each_setting[2]} for {categories[short_cat.index(each_setting[0].upper())]} results."
-                    )
-                if each_setting[0].lower() != "s":
-                    logging.info(
-                        f"Scraping r/{subreddit_name} for {each_setting[1]} {categories[short_cat.index(each_setting[0].upper())]} results..."
-                    )
-                elif each_setting[0].lower() == "s":
-                    logging.info(
-                        f"Searching and scraping r/{subreddit_name} for posts containing '{each_setting[1]}'..."
-                    )
+        if (isinstance(settings_dict, tuple)):
+            for subreddit_name, settings in settings_dict[0].items():
+                for each_setting in settings:
+                    if each_setting[2] in time_filters:
+                        logging.info(
+                            f"Getting posts from the past {each_setting[2]} for {categories[short_cat.index(each_setting[0].upper())]} results."
+                        )
+                    if each_setting[0].lower() != "s":
+                        logging.info(
+                            f"Scraping r/{subreddit_name} for {each_setting[1]} {categories[short_cat.index(each_setting[0].upper())]} results..."
+                        )
+                    elif each_setting[0].lower() == "s":
+                        logging.info(
+                            f"Searching and scraping r/{subreddit_name} for posts containing '{each_setting[1]}'..."
+                        )
 
-                logging.info("")
+                    logging.info("")
+        else:
+            for subreddit_name, settings in settings_dict.items():
+                for each_setting in settings:
+                    if each_setting[2] in time_filters:
+                        logging.info(
+                            f"Getting posts from the past {each_setting[2]} for {categories[short_cat.index(each_setting[0].upper())]} results."
+                        )
+                    if each_setting[0].lower() != "s":
+                        logging.info(
+                            f"Scraping r/{subreddit_name} for {each_setting[1]} {categories[short_cat.index(each_setting[0].upper())]} results..."
+                        )
+                    elif each_setting[0].lower() == "s":
+                        logging.info(
+                            f"Searching and scraping r/{subreddit_name} for posts containing '{each_setting[1]}'..."
+                        )
+
+                    logging.info("")
 
     @staticmethod
     def _format_two_arg_log(
@@ -210,22 +229,38 @@ class LogPRAWScraper:
         :param dict[str, Any] settings_dict: A `dict[str, Any]` containing Redditor
             scraping settings.
         """
+        if (isinstance(settings_dict, tuple)):
+            for reddit_object, n_results in settings_dict[0].items():
+                plurality = "results" if int(n_results) > 1 else "result"
 
-        for reddit_object, n_results in settings_dict.items():
-            plurality = "results" if int(n_results) > 1 else "result"
+                if scraper_type == "redditor":
+                    logging.info(
+                        f"Scraping {n_results} {plurality} for u/{reddit_object}..."
+                    )
+                elif scraper_type == "comments":
+                    logging.info(
+                        f"Processing all comments from Reddit post {reddit_object}..."
+                    ) if int(n_results) == 0 else logging.info(
+                        f"Processing {n_results} {plurality} from Reddit post {reddit_object}..."
+                    )
 
-            if scraper_type == "redditor":
-                logging.info(
-                    f"Scraping {n_results} {plurality} for u/{reddit_object}..."
-                )
-            elif scraper_type == "comments":
-                logging.info(
-                    f"Processing all comments from Reddit post {reddit_object}..."
-                ) if int(n_results) == 0 else logging.info(
-                    f"Processing {n_results} {plurality} from Reddit post {reddit_object}..."
-                )
+                logging.info("")
+        else:
+            for reddit_object, n_results in settings_dict.items():
+                plurality = "results" if int(n_results) > 1 else "result"
 
-            logging.info("")
+                if scraper_type == "redditor":
+                    logging.info(
+                        f"Scraping {n_results} {plurality} for u/{reddit_object}..."
+                    )
+                elif scraper_type == "comments":
+                    logging.info(
+                        f"Processing all comments from Reddit post {reddit_object}..."
+                    ) if int(n_results) == 0 else logging.info(
+                        f"Processing {n_results} {plurality} from Reddit post {reddit_object}..."
+                    )
+
+                logging.info("")
 
     @staticmethod
     def _format_scraper_log(
@@ -338,15 +373,18 @@ class LogAnalyticsErrors:
                 Errors.i_title(
                     "Scrape data is not located within the `scrapes` directory."
                 )
-                logging.critical("AN ERROR HAS OCCURRED WHILE PROCESSING SCRAPE DATA.")
+                logging.critical(
+                    "AN ERROR HAS OCCURRED WHILE PROCESSING SCRAPE DATA.")
                 logging.critical(
                     "Scrape data is not located within the `scrapes` directory."
                 )
                 logging.critical("ABORTING URS.\n")
                 quit()
             except TypeError:
-                Errors.i_title("Invalid file. Try again with a valid JSON file.")
-                logging.critical("AN ERROR HAS OCCURRED WHILE PROCESSING SCRAPE DATA.")
+                Errors.i_title(
+                    "Invalid file. Try again with a valid JSON file.")
+                logging.critical(
+                    "AN ERROR HAS OCCURRED WHILE PROCESSING SCRAPE DATA.")
                 logging.critical("Invalid file.")
                 logging.critical("ABORTING URS.\n")
                 quit()
@@ -470,7 +508,8 @@ class LogAnalytics:
                 logging.info("")
             except Exception as e:
                 Errors.ex_title(e)
-                logging.critical("AN ERROR HAS OCCURRED WHILE EXPORTING SCRAPED DATA.")
+                logging.critical(
+                    "AN ERROR HAS OCCURRED WHILE EXPORTING SCRAPED DATA.")
                 logging.critical(f"{e}")
                 logging.critical("ABORTING URS.\n")
                 quit()
@@ -570,7 +609,8 @@ class LogExport:
                 logging.info("")
             except Exception as e:
                 Errors.ex_title(e)
-                logging.critical("AN ERROR HAS OCCURRED WHILE EXPORTING SCRAPED DATA.")
+                logging.critical(
+                    "AN ERROR HAS OCCURRED WHILE EXPORTING SCRAPED DATA.")
                 logging.critical(f"{e}")
                 logging.critical("ABORTING URS.\n")
                 quit()

@@ -54,11 +54,46 @@ class Validation:
 
         pretty_limits = PrettyTable()
         pretty_limits.field_names = ["Remaining Requests", "Used Requests"]
-        pretty_limits.add_row([int(user_limits["remaining"]), int(user_limits["used"])])
+        pretty_limits.add_row(
+            [int(user_limits["remaining"]), int(user_limits["used"])])
 
         pretty_limits.align = "c"
 
         print(pretty_limits)
+
+    @staticmethod
+    def validate_user_from_api(reddit: Reddit) -> None:
+        """
+        Check if PRAW credentials are valid, then print rate limit PrettyTable.
+
+        :param ArgumentParser parser: The `ArgumentParser` object.
+        :param Reddit reddit: Reddit instance.
+        """
+
+        login_spinner = Halo(color="white", text="Logging in.")
+        login_spinner.start()
+
+        try:
+            redditor = reddit.user.me()
+
+            login_spinner.succeed(
+                Style.BRIGHT + Fore.GREEN +
+                f"Successfully logged in as u/{redditor}."
+            )
+            print()
+
+            Validation.print_rate_limit(reddit)
+
+            logging.info(f"Successfully logged in as u/{redditor}.")
+            logging.info("")
+        except PrawcoreException as error:
+            login_spinner.fail(Style.BRIGHT + Fore.RED + "Failed to log in.")
+
+            Errors.p_title(error)
+            logging.critical("LOGIN FAILED.")
+            logging.critical(f"PRAWCORE EXCEPTION: {error}.")
+            logging.critical("ABORTING URS.\n")
+            return None
 
     @staticmethod
     def validate_user(parser: ArgumentParser, reddit: Reddit) -> None:
@@ -76,7 +111,8 @@ class Validation:
             redditor = reddit.user.me()
 
             login_spinner.succeed(
-                Style.BRIGHT + Fore.GREEN + f"Successfully logged in as u/{redditor}."
+                Style.BRIGHT + Fore.GREEN +
+                f"Successfully logged in as u/{redditor}."
             )
             print()
 
@@ -214,7 +250,8 @@ class Validation:
         logging.info(f"Validating {object_type}(s)...")
         logging.info("")
 
-        invalid, valid = Validation.check_existence(object_list, reddit, scraper_type)
+        invalid, valid = Validation.check_existence(
+            object_list, reddit, scraper_type)
 
         check_status.succeed()
         print()
@@ -228,7 +265,8 @@ class Validation:
             print(Fore.YELLOW + Style.BRIGHT + "-" * len(warning_message))
             print(*invalid, sep="\n")
 
-            logging.warning(f"Failed to validate the following {object_type}s:")
+            logging.warning(
+                f"Failed to validate the following {object_type}s:")
             logging.warning(f"{invalid}")
             logging.warning("Skipping.")
             logging.info("")

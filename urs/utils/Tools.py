@@ -42,6 +42,8 @@ class Run:
 
         self._reddit = reddit
         self._args, self._parser = self._introduce_then_args()
+        print("=============== self._parser")
+        print(self._parser)
 
     def _introduce_then_args(self) -> Tuple[Namespace, ArgumentParser]:
         """
@@ -93,6 +95,8 @@ class Run:
             Validation.validate_user(self._parser, self._reddit)
 
             if self._args.subreddit:
+                print("=== self._args", self._args)
+                print("=== self._reddit", self._reddit)
                 RunSubreddit.run(self._args, self._reddit)
             if self._args.redditor:
                 RunRedditor.run(self._args, self._reddit)

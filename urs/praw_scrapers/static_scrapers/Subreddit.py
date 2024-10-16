@@ -50,10 +50,12 @@ class PrintConfirm:
             for each_sub in settings:
                 cat_i = short_cat.index(each_sub[0].upper())
                 time_filter = (
-                    each_sub[2].capitalize() if each_sub[2] != None else each_sub[2]
+                    each_sub[2].capitalize(
+                    ) if each_sub[2] != None else each_sub[2]
                 )
 
-                pretty_subs.add_row([sub, categories[cat_i], time_filter, each_sub[1]])
+                pretty_subs.add_row(
+                    [sub, categories[cat_i], time_filter, each_sub[1]])
 
     @staticmethod
     def print_settings(s_master: Dict[str, Any]) -> None:
@@ -138,7 +140,8 @@ class GetSubmissionsSwitch:
         """
 
         self._controversial = (
-            subreddit.controversial(limit=int(search_for), time_filter=time_filter)
+            subreddit.controversial(
+                limit=int(search_for), time_filter=time_filter)
             if time_filter != None
             else subreddit.controversial(limit=int(search_for))
         )
@@ -224,7 +227,8 @@ class GetSubmissions:
         category = categories[short_cat.index(cat_i)]
         index = short_cat.index(cat_i)
 
-        Halo().info(f"Processing {search_for} {category} results from r/{sub}.")
+        Halo().info(
+            f"Processing {search_for} {category} results from r/{sub}.")
 
         if time_filter != None:
             Halo().info(f"Time filter: {time_filter.capitalize()}")
@@ -251,7 +255,8 @@ class GetSubmissions:
         """
 
         return (
-            GetSubmissions._collect_search(search_for, sub, subreddit, time_filter)
+            GetSubmissions._collect_search(
+                search_for, sub, subreddit, time_filter)
             if cat_i == short_cat[5]
             else GetSubmissions._collect_others(
                 cat_i, search_for, sub, subreddit, time_filter
@@ -433,13 +438,15 @@ class GetSortWrite:
         :rtype: `dict[str, Any]`
         """
 
-        submissions = GetSubmissions.get(cat_i, search_for, sub, subreddit, time_filter)
+        submissions = GetSubmissions.get(
+            cat_i, search_for, sub, subreddit, time_filter)
         submissions = FormatSubmissions.format_submissions(submissions)
 
         if args.csv:
             return FormatCSV.format_csv(submissions)
 
-        skeleton = FormatJSON.make_json_skeleton(cat_i, search_for, sub, time_filter)
+        skeleton = FormatJSON.make_json_skeleton(
+            cat_i, search_for, sub, time_filter)
         FormatJSON.format_json(args, skeleton, submissions, subreddit)
 
         return skeleton
@@ -491,7 +498,7 @@ class GetSortWrite:
         :param dict[str, Any] s_master: A `dict[str, Any]` containing all scrape
             settings.
         """
-
+        data = {}
         for sub, settings in s_master.items():
             for each_sub in settings:
                 cat_i = each_sub[0].upper()
@@ -501,6 +508,8 @@ class GetSortWrite:
                     args, cat_i, str(each_sub[1]), sub, subreddit, each_sub[2]
                 )
                 GetSortWrite._write(args, cat_i, data, each_sub, sub)
+
+        return data
 
 
 class RunSubreddit:
@@ -564,9 +573,12 @@ class RunSubreddit:
             settings.
         """
 
-        GetSortWrite.gsw(
-            args, reddit, s_master
-        ) if args.y else RunSubreddit._confirm_write(args, reddit, s_master)
+        if args.y:
+            return GetSortWrite.gsw(
+                args, reddit, s_master
+            )
+        else:
+            RunSubreddit._confirm_write(args, reddit, s_master)
 
     @staticmethod
     @LogExport.log_export
@@ -586,3 +598,22 @@ class RunSubreddit:
         RunSubreddit._write_file(args, reddit, s_master)
 
         return s_master
+
+    # @staticmethod
+    # @LogExport.log_export
+    # @LogPRAWScraper.scraper_timer("subreddit")
+    def run_from_api(args: Namespace, reddit: Reddit) -> Dict[str, List[Any]]:
+        """
+        Run Subreddit scraper.
+
+        :param Namespace args: A `Namespace` object containing all arguments used
+            in the CLI.
+        :param Reddit reddit: The Reddit instance.
+        """
+
+        PRAWTitles.r_title()
+
+        s_master = RunSubreddit._create_settings(args, reddit)
+        data = RunSubreddit._write_file(args, reddit, s_master)
+
+        return s_master, data
